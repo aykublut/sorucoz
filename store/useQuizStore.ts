@@ -37,10 +37,17 @@ export const useQuizStore = create<QuizState>((set, get) => ({
 
   finishQuiz: () =>
     set((state) => {
-      const wrongQs = state.questions.filter(
+      // Eğer yanlış modundaysak sadece yanlış soruları, değilse tüm soruları değerlendir
+      const currentList = state.isWrongAnswersMode
+        ? state.wrongQuestions
+        : state.questions;
+
+      // O an çözülen listedeki yanlışları bul
+      const newWrongQs = currentList.filter(
         (q) => state.userAnswers[q.id] !== q.correctAnswer,
       );
-      return { isQuizFinished: true, wrongQuestions: wrongQs };
+
+      return { isQuizFinished: true, wrongQuestions: newWrongQs };
     }),
 
   restartQuiz: () =>
