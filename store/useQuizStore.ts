@@ -49,7 +49,21 @@ export const useQuizStore = create<QuizState>((set, get) => ({
 
       return { isQuizFinished: true, wrongQuestions: newWrongQs };
     }),
-
+  // === YENİ: SORULARI KARIŞTIRMA FONKSİYONU ===
+  shuffleQuestions: () =>
+    set((state) => {
+      const shuffled = [...state.questions];
+      // Fisher-Yates Karıştırma Algoritması
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return {
+        questions: shuffled,
+        activeQuestionIndex: 0, // 1. soruya dön
+        userAnswers: {}, // Verilen cevapları sıfırla
+      };
+    }),
   restartQuiz: () =>
     set({
       activeQuestionIndex: 0,

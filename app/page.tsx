@@ -19,6 +19,7 @@ export default function QuizApp() {
     finishQuiz,
     restartQuiz,
     retryWrongAnswers,
+    shuffleQuestions, // YENİ: Store'dan çektik
   } = useQuizStore();
 
   const [mounted, setMounted] = useState(false);
@@ -49,7 +50,6 @@ export default function QuizApp() {
       ? ((activeQuestionIndex + 1) / currentQuestionsList.length) * 100
       : 0;
 
-  // Klavye Kısayolları
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (isQuizFinished || !currentQuestion) return;
@@ -82,7 +82,6 @@ export default function QuizApp() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // Yükleme Ekranı
   if (!mounted || questions.length === 0) {
     return (
       <div className="h-[100dvh] w-full flex items-center justify-center bg-[#050505]">
@@ -94,7 +93,7 @@ export default function QuizApp() {
     );
   }
 
-  // === SONUÇ EKRANI (DASHBOARD) ===
+  // === SONUÇ EKRANI ===
   if (isQuizFinished) {
     const currentListWrongCount = currentQuestionsList.filter(
       (q) => userAnswers[q.id] !== q.correctAnswer,
@@ -105,11 +104,9 @@ export default function QuizApp() {
 
     return (
       <div className="h-[100dvh] w-full bg-[#030303] text-slate-200 flex items-center justify-center p-4 overflow-hidden relative">
-        {/* Arka Plan Efektleri */}
         <div
           className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120vw] h-[120vh] opacity-20 blur-[120px] pointer-events-none transition-colors duration-1000 ${isPerfect ? "bg-[radial-gradient(circle,rgba(16,185,129,0.4)_0%,transparent_60%)]" : "bg-[radial-gradient(circle,rgba(99,102,241,0.4)_0%,transparent_60%)]"}`}
         ></div>
-
         <div className="w-full max-w-md z-10 flex flex-col gap-6">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 tracking-tighter">
@@ -121,7 +118,6 @@ export default function QuizApp() {
                 : "Test oturumu sona erdi."}
             </p>
           </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/[0.03] border border-emerald-500/20 rounded-3xl p-6 text-center backdrop-blur-md">
               <span className="text-4xl font-black text-emerald-400 block mb-1">
@@ -140,7 +136,6 @@ export default function QuizApp() {
               </span>
             </div>
           </div>
-
           <div className="flex flex-col gap-3 mt-4">
             {currentListWrongCount > 0 && (
               <button
@@ -162,10 +157,9 @@ export default function QuizApp() {
     );
   }
 
-  // === TEST EKRANI (SIFIR SCROLL, FULL RESPONSIVE) ===
+  // === TEST EKRANI ===
   return (
     <div className="h-[100dvh] w-full bg-[#050505] text-slate-200 flex flex-col overflow-hidden relative selection:bg-indigo-500/30">
-      {/* İnce İlerleme Çubuğu - En Üstte */}
       <div className="absolute top-0 left-0 w-full h-1 bg-white/5 z-50">
         <div
           className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)] transition-all duration-500 ease-out"
@@ -173,11 +167,10 @@ export default function QuizApp() {
         />
       </div>
 
-      {/* Arka Plan Izgarası & Ortam Işığı */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-[40vh] bg-indigo-600/10 blur-[100px] pointer-events-none rounded-full" />
 
-      {/* Üst Bar (Statüler) */}
+      {/* === ÜST BAR & KARIŞTIR BUTONU === */}
       <div className="w-full max-w-3xl mx-auto px-4 pt-4 sm:pt-6 pb-2 flex items-center justify-between shrink-0 z-10">
         <div className="flex items-center gap-2">
           <span
@@ -185,6 +178,29 @@ export default function QuizApp() {
           >
             {isWrongAnswersMode ? "Hata Modu" : "Aktif Test"}
           </span>
+
+          {/* SADECE 1. SORUDA ÇIKAN KARIŞTIR BUTONU */}
+          {!isWrongAnswersMode && activeQuestionIndex === 0 && (
+            <button
+              onClick={shuffleQuestions}
+              className="px-2.5 py-1 text-[clamp(10px,1.2dvh,12px)] font-bold tracking-wider uppercase rounded-lg border bg-fuchsia-500/10 text-fuchsia-400 border-fuchsia-500/20 hover:bg-fuchsia-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-300"
+            >
+              <svg
+                className="w-[14px] h-[14px]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Karıştır
+            </button>
+          )}
         </div>
         <div className="text-[clamp(12px,1.5dvh,14px)] font-semibold text-slate-400">
           <span className="text-white">{activeQuestionIndex + 1}</span> /{" "}
@@ -192,25 +208,20 @@ export default function QuizApp() {
         </div>
       </div>
 
-      {/* ANA KART (FLEX-1 ile kalan tüm yüksekliği alır) */}
       <div className="flex-1 min-h-0 w-full max-w-3xl mx-auto flex flex-col px-4 pb-4 sm:px-6 z-10">
         <div className="flex-1 min-h-0 bg-white/[0.02] backdrop-blur-xl border border-white/[0.05] rounded-[2rem] p-[clamp(1rem,3dvh,2.5rem)] flex flex-col shadow-2xl relative">
           {currentQuestion && (
             <>
-              {/* SORU METNİ - Sığmak için küçülür */}
               <div className="shrink-0 mb-[clamp(1rem,3dvh,2.5rem)]">
                 <h2 className="text-[clamp(1.1rem,2.8dvh,1.75rem)] font-semibold text-slate-100 leading-[1.3] tracking-tight">
                   {currentQuestion.questionText}
                 </h2>
               </div>
-
-              {/* ŞIKLAR LİSTESİ - Flex-1 ile boşluğu doldurur, dikeyde ortalar */}
               <div className="flex-1 min-h-0 flex flex-col justify-center gap-[clamp(0.5rem,1.5dvh,1rem)]">
                 {currentQuestion.options.map((option, index) => {
                   const isSelected = userAnswers[currentQuestion.id] === option;
                   const isCorrectAnswer =
                     option === currentQuestion.correctAnswer;
-
                   let baseStyle =
                     "border-white/5 bg-white/[0.03] text-slate-300 hover:border-indigo-500/30 hover:bg-indigo-500/10";
                   let icon = null;
@@ -265,7 +276,6 @@ export default function QuizApp() {
                       onClick={() => answerQuestion(currentQuestion.id, option)}
                       className={`group w-full flex items-center justify-between p-[clamp(0.75rem,2dvh,1.25rem)] rounded-[1rem] sm:rounded-[1.25rem] border-2 transition-all duration-300 outline-none text-left ${baseStyle} ${!hasAnswered && "active:scale-[0.98]"}`}
                     >
-                      {/* Şık Metni - Çok uzunsa satır atlar ama font dikey ekran payına göre küçülür */}
                       <span className="text-[clamp(0.85rem,2.2dvh,1.1rem)] font-medium leading-[1.3] pr-4 line-clamp-4">
                         {option}
                       </span>
@@ -282,7 +292,6 @@ export default function QuizApp() {
           )}
         </div>
 
-        {/* ALT KONTROL PANELİ - Butonlar her zaman sabit boyutta alt kısımda durur */}
         <div className="shrink-0 pt-4 pb-2 flex items-center justify-between gap-4">
           <button
             onClick={prevQuestion}
@@ -303,7 +312,6 @@ export default function QuizApp() {
               />
             </svg>
           </button>
-
           {isLastQuestion ? (
             <button
               onClick={finishQuiz}

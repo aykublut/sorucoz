@@ -12,7 +12,7 @@ export interface QuizState {
   isQuizFinished: boolean;
   isWrongAnswersMode: boolean;
   wrongQuestions: Question[];
-
+  shuffleQuestions: () => void; // BUNA EKLENECEK
   // Aksiyonlar
   setQuestions: (questions: Question[]) => void;
   answerQuestion: (questionId: number, answer: string) => void;
